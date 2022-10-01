@@ -31,7 +31,6 @@ test('HTTP Request: Right wildcard pass', async () => {
   assert.equal(request.isMatch(query), true);
 })
 
-
 test('HTTP Request: Right wildcard fail', async () => {
   const request = new HttpRequest('GET', '/video/88594')
   const query = new HttpRequest('GET', '/post/*')

@@ -19,19 +19,22 @@ interface QuadrantPointJson {
  */
 export class QuadrantPoint {
   type: QuadrantType
+  time: number
   content: number
   context: number
 
-  constructor (type: QuadrantType | QuadrantPointJson, content: number = 0, context: number = 0) {
+  constructor (type: QuadrantType | QuadrantPointJson, content: number = 0, context: number = 0, time: number = 0) {
     if(typeof type === 'number') {
       this.type = type
       this.content = content
       this.context = context
+      this.time = time
     } else {
       const json = type as QuadrantPointJson
       this.type = json.type
       this.content = json.content
       this.context = json.context
+      this.time = json.time
     }
   }
 

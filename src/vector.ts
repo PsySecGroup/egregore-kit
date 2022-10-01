@@ -6,7 +6,10 @@ const PI_RADIAN = 180 / Math.PI
  * 
  */
 function getDegrees (rise: number, run: number) {
-  return Math.atan(Math.abs(rise) / Math.abs(run)) * PI_RADIAN
+  const result = Math.atan(rise / run) * PI_RADIAN
+  
+
+  return result
 }
 
 /**               (context)
@@ -20,32 +23,33 @@ function getDegrees (rise: number, run: number) {
  */
 export class Vector {
   type: QuadrantType
-  context: number
-  content: number
+  x: number
+  y: number
   angle: number
 
   constructor (point: QuadrantPoint) {
     this.type = point.type
-    this.content = point.content
-    this.context = point.context
-    const degree = getDegrees(this.context, this.content)
+    this.x = point.content
+    this.y = point.context
+    
+    const degree = getDegrees(this.y, this.x)
 
     switch (point.type) {
       case QuadrantType.socialCreate:
         this.angle = degree
       break
       case QuadrantType.personalCreate:
-        this.angle = this.content === 0
+        this.angle = this.x === 0
           ? 0
           : 360 - degree
       break
       case QuadrantType.personalDestroy:
-        this.angle = this.content === 0
+        this.angle = this.x === 0
           ? 270
           : 180 + degree
       break
       case QuadrantType.socialDestroy:
-        this.angle = this.content === 0
+        this.angle = this.x === 0
           ? 180
           : 180 - degree
       break
