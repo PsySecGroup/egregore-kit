@@ -1,8 +1,14 @@
 const isNegativeZero = require( 'is-negative-zero')
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript"
 import { HttpRequest } from "./httpRequest"
 import { QuadrantPoint, QuadrantType } from "./quadrantPoint"
 import { Vector } from "./vector"
+
+interface MethodStringMap {
+  social: string[]
+  personal: string[]
+  create: string[]
+  destroy: string[]
+}
 
 interface MethodMap {
   social: HttpRequest[]
@@ -56,8 +62,41 @@ export class Space {
     [QuadrantType.socialDestroy]: []
   }
 
-  constructor (endpoints: MethodMap) {
-    this.endpoints = endpoints
+  constructor (endpoints: MethodMap | MethodStringMap) {
+    const social: HttpRequest[] = typeof endpoints.social[0] !== 'string'
+      ? endpoints.social as HttpRequest[]
+      : endpoints.social.map(endpoint => {
+        const parts = endpoint.split(' ')
+        return new HttpRequest(parts[0], parts[1])
+      }) as HttpRequest[]
+
+    const personal: HttpRequest[] = typeof endpoints.personal[0] !== 'string'
+    ? endpoints.personal as HttpRequest[]
+    : endpoints.personal.map(endpoint => {
+      const parts = endpoint.split(' ')
+      return new HttpRequest(parts[0], parts[1])
+    }) as HttpRequest[]
+
+    const create: HttpRequest[] = typeof endpoints.create[0] !== 'string'
+    ? endpoints.create as HttpRequest[]
+    : endpoints.create.map(endpoint => {
+      const parts = endpoint.split(' ')
+      return new HttpRequest(parts[0], parts[1])
+    }) as HttpRequest[]
+
+    const destroy: HttpRequest[] = typeof endpoints.destroy[0] !== 'string'
+    ? endpoints.destroy as HttpRequest[]
+    : endpoints.destroy.map(endpoint => {
+      const parts = endpoint.split(' ')
+      return new HttpRequest(parts[0], parts[1])
+    }) as HttpRequest[]
+
+    this.endpoints = {
+      social,
+      personal,
+      create,
+      destroy
+    }
   }
 
   /**
