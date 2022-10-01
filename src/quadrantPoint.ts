@@ -7,6 +7,13 @@ export enum QuadrantType {
   socialDestroy
 }
 
+interface QuadrantPointJson {
+  type: QuadrantType
+  content: number
+  context: number
+  time?: number
+}
+
 /**
  * 
  */
@@ -14,13 +21,18 @@ export class QuadrantPoint {
   type: QuadrantType
   content: number
   context: number
-  time: number
 
-  constructor (type: QuadrantType, time: number, content: number = 0, context: number = 0) {
-    this.type = type
-    this.content = content
-    this.context = context
-    this.time = time
+  constructor (type: QuadrantType | QuadrantPointJson, content: number = 0, context: number = 0) {
+    if(typeof type === 'number') {
+      this.type = type
+      this.content = content
+      this.context = context
+    } else {
+      const json = type as QuadrantPointJson
+      this.type = json.type
+      this.content = json.content
+      this.context = json.context
+    }
   }
 
   /**

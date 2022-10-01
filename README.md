@@ -50,45 +50,45 @@ import { HttpRequest, Space } from 'egregore-kit'
 // Define what HTTP REST endpoints represent what quadrants in the Context-Content Space
 const space = new Space({
   socialCreate: [
-    new HttpRequest('POST', '/like'),
-    new HttpRequest('POST', '/favorite'),
-    new HttpRequest('POST', '/friendRequest')
-    new HttpRequest('POST', '/comment'),
-    new HttpRequest('POST', '/search'),
-    new HttpRequest('POST', '/joinGroup'),
+    new HttpRequest('POST', '/like/*'),
+    new HttpRequest('POST', '/favorite/*'),
+    new HttpRequest('POST', '/friendRequest/*')
+    new HttpRequest('POST', '/post/*/comment'),
+    new HttpRequest('POST', '/search/*'),
+    new HttpRequest('POST', '/joinGroup/*'),
   ]
   personalCreate: [
     new HttpRequest('POST', '/video'),
     new HttpRequest('POST', '/post'),
+    new HttpRequest('POST', '/post/*/comment'),
     new HttpRequest('POST', '/settings'),
     new HttpRequest('POST', '/changePassword'),
   ]
   personalDestroy: [
-    new HttpRequest('DELETE', '/video'),
-    new HttpRequest('DELETE', '/post'),
-    new HttpRequest('DELETE', '/comment'),
-    new HttpRequest('PUT', '/video'),
-    new HttpRequest('PUT', '/post'),
-    new HttpRequest('PUT', '/comment'),
+    new HttpRequest('DELETE', '/video/*'),
+    new HttpRequest('DELETE', '/post/*'),
+    new HttpRequest('DELETE', '/comment/*'),
+    new HttpRequest('PUT', '/video/*'),
+    new HttpRequest('PUT', '/post/*'),
+    new HttpRequest('PUT', '/comment/*'),
   ]
   socialDestroy: [
     new HttpRequest('POST', '/report'),
-    new HttpRequest('POST', '/block'),
-    new HttpRequest('POST', '/unfriend'),
+    new HttpRequest('POST', '/block/*'),
+    new HttpRequest('POST', '/unfriend/*'),
   ]
 })
 
 // Populate the space with HTTP Requests
 space.addRequests([
-  new HttpRequest('POST', '/like', 1),
-  new HttpRequest('POST', '/favorite', 2),
-  new HttpRequest('POST', '/friendRequest', 3)
-  new HttpRequest('POST', '/comment', 4),
-  new HttpRequest('POST', '/like', 5),
-  new HttpRequest('POST', '/favorite', 6),
-  new HttpRequest('POST', '/friendRequest', 7)
-  new HttpRequest('POST', '/comment', 8),
-  new HttpRequest('POST', '/post', 9),
+  new HttpRequest('POST', '/like/41', 1),
+  new HttpRequest('POST', '/favorite/534', 2),
+  new HttpRequest('POST', '/friendRequest/bob', 3)
+  new HttpRequest('POST', '/post/3345/comment', 4),
+  new HttpRequest('POST', '/like/417', 1),
+  new HttpRequest('POST', '/favorite/5334', 2),
+  new HttpRequest('POST', '/friendRequest/adam', 3)
+  new HttpRequest('POST', '/post/33145/comment', 4),
   new HttpRequest('POST', '/report', 10)
 ])
 
