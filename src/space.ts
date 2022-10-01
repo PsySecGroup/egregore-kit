@@ -1,5 +1,8 @@
-import { HttpRequest } from "./httpRequest";
-import { QuadrantPoint, QuadrantType } from "./quadrantPoint";
+const isNegativeZero = require( 'is-negative-zero')
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript"
+import { HttpRequest } from "./httpRequest"
+import { QuadrantPoint, QuadrantType } from "./quadrantPoint"
+import { Vector } from "./vector"
 
 interface MethodMap {
   social: HttpRequest[]
@@ -8,26 +11,37 @@ interface MethodMap {
   destroy: HttpRequest[]
 }
 
-interface PointCoord {
-  x: number
-  y: number
-  type: QuadrantType
-}
-
 interface QuadrantPoints {
   [QuadrantType.socialCreate]: QuadrantPoint[],
   [QuadrantType.personalCreate]: QuadrantPoint[],
   [QuadrantType.personalDestroy]: QuadrantPoint[],
-  [QuadrantType.socialDestroy]: QuadrantPoint[],
+  [QuadrantType.socialDestroy]: QuadrantPoint[]
 }
 
-const offsetToNullfiyNegatives = 1000000000000
+const PI_RADIAN = 180 / Math.PI
 
 /**
  * 
  */
 function requestSearch (list: HttpRequest[], request: HttpRequest) {
   return list.find(endpoint => request.isMatch(endpoint)) !== undefined
+}
+
+/**
+ * 
+ */
+ function getDegrees (a: Vector, b: Vector, offset = 360) {
+  const slope = (b.y - a.y) / (b.x - a.x)
+  const degree = Math.atan(slope) * PI_RADIAN
+  let angle = degree % 360;
+  
+  if (angle < 0) {
+    angle += offset
+  } else if (isNegativeZero(angle)) {
+    angle = 180
+  }
+  
+  return angle
 }
 
 /**
@@ -84,59 +98,13 @@ export class Space {
   /**
    * 
    */
-  getPointsAsCoords () {
-    const result: PointCoord[] = [
-      {
-        x: 0,
-        y: 0,
-        type: QuadrantType.socialCreate
-      },
-      {
-        x: 0,
-        y: 0,
-        type: QuadrantType.personalCreate
-      },
-      {
-        x: 0,
-        y: 0,
-        type: QuadrantType.personalDestroy
-      },
-      {
-        x: 0,
-        y: 0,
-        type: QuadrantType.socialDestroy
-      }
-    ]
-
-    this.points[QuadrantType.socialCreate].forEach(point => {
-      result[0].x += point.content
-      result[0].y += point.context
-    })
-
-    this.points[QuadrantType.personalCreate].forEach(point => {
-      result[1].x += point.content
-      result[1].y += point.context
-    })
-
-    this.points[QuadrantType.personalDestroy].forEach(point => {
-      result[2].x += point.content
-      result[2].y += point.context
-    })
-
-    this.points[QuadrantType.socialDestroy].forEach(point => {
-      result[3].x += point.content
-      result[3].y += point.context
-    })
-    
-    return result
-  }
-
-  /**
-   * 
-   */
    private _reduce (points: QuadrantPoint[]) {
-    let content = offsetToNullfiyNegatives
-    let context = offsetToNullfiyNegatives
+    if (points.length === 0) {
+      return false
+    }
+
+    let content = 0
+    let context = 0
 
     for (const point of points) {
       context += point.context
@@ -145,17 +113,14 @@ export class Space {
 
     const result = new QuadrantPoint(points[0].type, content, context).toVector()
 
-    result.x -= offsetToNullfiyNegatives
-    result.y -= offsetToNullfiyNegatives
-
     return result
   }
 
   /**
    * 
    */
-  getShape () {
-    return {
+  getVectors () {
+    const result = {
       temperature: NaN, // @TODO
       pressure: NaN, // @TODO
       vectors: [
@@ -163,7 +128,18 @@ export class Space {
         this._reduce(this.points[QuadrantType.personalCreate]),
         this._reduce(this.points[QuadrantType.personalDestroy]),
         this._reduce(this.points[QuadrantType.socialDestroy])
-      ]
+      ].filter(vector => vector !== false) as Vector[],
+      angles: []
     }
+
+    for (let i = 0, len = result.vectors.length; i < len; i++) {
+      const nextVector = result.vectors[i + 1] === undefined
+        ? result.vectors[0]
+        : result.vectors[i + 1]
+
+      result.angles.push(getDegrees(result.vectors[i], nextVector, 360 - (i * 90)))
+    }
+
+    return result
   }
 }

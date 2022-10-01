@@ -104,7 +104,7 @@ test('Space: Get Points', async () => {
   assert.equal(points.socialDestroy[0].time, 4)
 })
 
-test('Space: Get Points As Coords', async () => {
+test('Space: Get Vectors 1', async () => {
   const space = new Space(endpoints)
 
   space.addRequests([
@@ -114,59 +114,58 @@ test('Space: Get Points As Coords', async () => {
     new HttpRequest('POST', '/block/4', 4)
   ])
 
-  const coords = space.getPointsAsCoords()
+  const shape = space.getVectors()
 
-  assert.equal(coords.length, 4)
-
-  assert.equal(coords[0].type, 0)
-  assert.equal(coords[0].x, 0)
-  assert.equal(coords[0].y, 3)
-
-  assert.equal(coords[1].type, 1)
-  assert.equal(coords[1].x, 0)
-  assert.equal(coords[1].y, -1)
-
-  assert.equal(coords[2].type, 2)
-  assert.equal(coords[2].x, 3)
-  assert.equal(coords[2].y, 0)
-
-  assert.equal(coords[3].type, 3)
-  assert.equal(coords[3].x, -1)
-  assert.equal(coords[3].y, 0)
-})
-
-
-test('Space: Get Shape', async () => {
-  const space = new Space(endpoints)
-
-  space.addRequests([
-    new HttpRequest('POST', '/like/1', 1),
-    new HttpRequest('POST', '/video', 2),
-    new HttpRequest('POST', '/friendRequest/3', 3),
-    new HttpRequest('POST', '/block/4', 4)
-  ])
-
-  const shape = space.getShape()
-  
   assert.equal(shape.vectors.length, 4)
+  assert.equal(shape.angles.length, 4)
 
   assert.equal(shape.vectors[0].type, 0)
   assert.equal(shape.vectors[0].x, 0)
   assert.equal(shape.vectors[0].y, 3)
-  assert.equal(shape.vectors[0].angle, 45.00000000008595)
+  assert.equal(shape.angles[0], 270)
 
   assert.equal(shape.vectors[1].type, 1)
   assert.equal(shape.vectors[1].x, 0)
   assert.equal(shape.vectors[1].y, -1)
-  assert.equal(shape.vectors[1].angle, 315.00000000002865)
+  assert.equal(shape.angles[1], 18.43494882292201)
 
   assert.equal(shape.vectors[2].type, 2)
   assert.equal(shape.vectors[2].x, 3)
   assert.equal(shape.vectors[2].y, 0)
-  assert.equal(shape.vectors[2].angle, 224.99999999991405)
+  assert.equal(shape.angles[2], 180)
 
   assert.equal(shape.vectors[3].type, 3)
   assert.equal(shape.vectors[3].x, -1)
   assert.equal(shape.vectors[3].y, 0)
-  assert.equal(shape.vectors[3].angle, 134.99999999997135)
+  assert.equal(shape.angles[3], 71.56505117707799)
+})
+
+test('Space: Get Vectors 1', async () => {
+  const space = new Space(endpoints)
+
+  space.addRequests([
+    new HttpRequest('POST', '/like/1', 1),
+    new HttpRequest('POST', '/video', 2),
+    new HttpRequest('POST', '/friendRequest/3', 3)
+  ])
+
+  const shape = space.getVectors()
+
+  assert.equal(shape.vectors.length, 3)
+  assert.equal(shape.angles.length, 3)
+
+  assert.equal(shape.vectors[0].type, 0)
+  assert.equal(shape.vectors[0].x, 0)
+  assert.equal(shape.vectors[0].y, 2)
+  assert.equal(shape.angles[0], 270)
+
+  assert.equal(shape.vectors[1].type, 1)
+  assert.equal(shape.vectors[1].x, 0)
+  assert.equal(shape.vectors[1].y, -1)
+  assert.equal(shape.angles[1], 18.43494882292201)
+
+  assert.equal(shape.vectors[2].type, 2)
+  assert.equal(shape.vectors[2].x, 3)
+  assert.equal(shape.vectors[2].y, 0)
+  assert.equal(shape.angles[2], 146.30993247402023)
 })
