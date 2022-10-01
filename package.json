@@ -1,16 +1,16 @@
 {
-  "name": "@psysecgroup/typescript-server-template",
+  "name": "egregore-kit",
   "description": "Easily sets up TypeScript server-side projects that are StackBlitz compliant.",
   "version": "1.0.0",
   "author": "The PsySec Group",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/PsySecGroup/typescript-server-template/issues"
+    "url": "https://github.com/PsySecGroup/egregore-kit/issues"
   },
-  "homepage": "https://github.com/PsySecGroup/typescript-server-template#readme",
+  "homepage": "https://github.com/PsySecGroup/egregore-kit#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PsySecGroup/typescript-server-template.git"
+    "url": "git+https://github.com/PsySecGroup/egregore-kit.git"
   },
   "scripts": {
     "start": "node -r source-map-support/register dist/index.js",
