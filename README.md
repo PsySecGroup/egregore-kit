@@ -128,3 +128,12 @@ const vectors = space.getVectors(3)
 }
 */
 ```
+
+## TODO
+
+* Examples:
+  * Calculating the vectors of a single user for each day of the week
+  * Calculating the vectors of a cluster of users every 10 minutes
+  * Calculating the vectors of different versions of an application for a cluster of users every hour
+* Native cosine similarity comparisons
+* CLI, pipe, and stream support
