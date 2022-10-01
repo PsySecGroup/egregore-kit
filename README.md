@@ -112,7 +112,7 @@ const points = space.getPoints()
 ]
 */
 
-// Sum together each content and context position into one vector per quadrant, calculate the angles between each point, and calculate the temperature and pressure of the shape
+// Sum together each content and context position into one vector per quadrant, calculate the angles between each point, and calculate the temperature and pressure of the shape based on how many users generated all of the requests.  (In this example, 3 users, which is seen as the first parameter)
 const vectors = space.getVectors(3)
 /*
 {
