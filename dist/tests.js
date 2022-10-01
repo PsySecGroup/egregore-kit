@@ -44,8 +44,8 @@ var HttpRequest = class {
 var Vector = class {
   constructor(point) {
     this.type = point.type;
-    this.x = point.content;
-    this.y = point.context;
+    this.content = point.content;
+    this.context = point.context;
   }
 };
 
@@ -83,7 +83,7 @@ function requestSearch(list, request) {
   return list.find((endpoint) => request.isMatch(endpoint)) !== void 0;
 }
 function getDegrees(a, b, offset = 360) {
-  const slope = (b.y - a.y) / (b.x - a.x);
+  const slope = (b.context - a.context) / (b.content - a.content);
   const degree = Math.atan(slope) * PI_RADIAN;
   let angle = degree % 360;
   if (angle < 0) {
@@ -141,12 +141,12 @@ var Space = class {
     }
   }
   getPoints() {
-    return {
-      socialCreate: this.points[0 /* socialCreate */],
-      personalCreate: this.points[1 /* personalCreate */],
-      personalDestroy: this.points[2 /* personalDestroy */],
-      socialDestroy: this.points[3 /* socialDestroy */]
-    };
+    return [
+      ...this.points[0 /* socialCreate */],
+      ...this.points[1 /* personalCreate */],
+      ...this.points[2 /* personalDestroy */],
+      ...this.points[3 /* socialDestroy */]
+    ];
   }
   _reduce(points) {
     if (points.length === 0) {
@@ -161,22 +161,28 @@ var Space = class {
     const result = new QuadrantPoint(points[0].type, content, context).toVector();
     return result;
   }
-  getVectors() {
+  getVectors(users) {
+    const vectors = [
+      this._reduce(this.points[0 /* socialCreate */]),
+      this._reduce(this.points[1 /* personalCreate */]),
+      this._reduce(this.points[2 /* personalDestroy */]),
+      this._reduce(this.points[3 /* socialDestroy */])
+    ].filter((vector) => vector !== false);
     const result = {
-      temperature: NaN,
-      pressure: NaN,
-      vectors: [
-        this._reduce(this.points[0 /* socialCreate */]),
-        this._reduce(this.points[1 /* personalCreate */]),
-        this._reduce(this.points[2 /* personalDestroy */]),
-        this._reduce(this.points[3 /* socialDestroy */])
-      ].filter((vector) => vector !== false),
+      temperature: 0,
+      pressure: 0,
+      vectors,
       angles: []
     };
     for (let i = 0, len = result.vectors.length; i < len; i++) {
+      const vector = result.vectors[i];
       const nextVector = result.vectors[i + 1] === void 0 ? result.vectors[0] : result.vectors[i + 1];
-      result.angles.push(getDegrees(result.vectors[i], nextVector, 360 - i * 90));
+      result.angles.push(getDegrees(vector, nextVector, 360 - i * 90));
+      result.temperature += vector.context;
+      result.pressure += vector.content;
     }
+    result.temperature /= users;
+    result.pressure /= users;
     return result;
   }
 };
@@ -312,42 +318,39 @@ var endpoints = {
     new HttpRequest("POST", "/block/4", 4)
   ]);
   const points = space.getPoints();
-  assert3.equal(points.socialCreate.length, 3);
-  assert3.equal(points.personalCreate.length, 1);
-  assert3.equal(points.personalDestroy.length, 3);
-  assert3.equal(points.socialDestroy.length, 1);
-  assert3.equal(points.socialCreate[0].type, 0);
-  assert3.equal(points.socialCreate[0].content, 0);
-  assert3.equal(points.socialCreate[0].context, 1);
-  assert3.equal(points.socialCreate[0].time, 1);
-  assert3.equal(points.socialCreate[1].type, 0);
-  assert3.equal(points.socialCreate[1].content, 0);
-  assert3.equal(points.socialCreate[1].context, 1);
-  assert3.equal(points.socialCreate[1].time, 3);
-  assert3.equal(points.socialCreate[2].type, 0);
-  assert3.equal(points.socialCreate[2].content, 0);
-  assert3.equal(points.socialCreate[2].context, 1);
-  assert3.equal(points.socialCreate[2].time, 4);
-  assert3.equal(points.personalCreate[0].type, 1);
-  assert3.equal(points.personalCreate[0].content, 0);
-  assert3.equal(points.personalCreate[0].context, -1);
-  assert3.equal(points.personalCreate[0].time, 2);
-  assert3.equal(points.personalDestroy[0].type, 2);
-  assert3.equal(points.personalDestroy[0].content, 1);
-  assert3.equal(points.personalDestroy[0].context, 0);
-  assert3.equal(points.personalDestroy[0].time, 1);
-  assert3.equal(points.personalDestroy[1].type, 2);
-  assert3.equal(points.personalDestroy[1].content, 1);
-  assert3.equal(points.personalDestroy[1].context, 0);
-  assert3.equal(points.personalDestroy[1].time, 2);
-  assert3.equal(points.personalDestroy[2].type, 2);
-  assert3.equal(points.personalDestroy[2].content, 1);
-  assert3.equal(points.personalDestroy[2].context, 0);
-  assert3.equal(points.personalDestroy[2].time, 3);
-  assert3.equal(points.socialDestroy[0].type, 3);
-  assert3.equal(points.socialDestroy[0].content, -1);
-  assert3.equal(points.socialDestroy[0].context, 0);
-  assert3.equal(points.socialDestroy[0].time, 4);
+  assert3.equal(points.length, 8);
+  assert3.equal(points[0].type, 0);
+  assert3.equal(points[0].content, 0);
+  assert3.equal(points[0].context, 1);
+  assert3.equal(points[0].time, 1);
+  assert3.equal(points[1].type, 0);
+  assert3.equal(points[1].content, 0);
+  assert3.equal(points[1].context, 1);
+  assert3.equal(points[1].time, 3);
+  assert3.equal(points[2].type, 0);
+  assert3.equal(points[2].content, 0);
+  assert3.equal(points[2].context, 1);
+  assert3.equal(points[2].time, 4);
+  assert3.equal(points[3].type, 1);
+  assert3.equal(points[3].content, 0);
+  assert3.equal(points[3].context, -1);
+  assert3.equal(points[3].time, 2);
+  assert3.equal(points[4].type, 2);
+  assert3.equal(points[4].content, 1);
+  assert3.equal(points[4].context, 0);
+  assert3.equal(points[4].time, 1);
+  assert3.equal(points[5].type, 2);
+  assert3.equal(points[5].content, 1);
+  assert3.equal(points[5].context, 0);
+  assert3.equal(points[5].time, 2);
+  assert3.equal(points[6].type, 2);
+  assert3.equal(points[6].content, 1);
+  assert3.equal(points[6].context, 0);
+  assert3.equal(points[6].time, 3);
+  assert3.equal(points[7].type, 3);
+  assert3.equal(points[7].content, -1);
+  assert3.equal(points[7].context, 0);
+  assert3.equal(points[7].time, 4);
 });
 (0, import_uvu3.test)("Space: Get Vectors 1", async () => {
   const space = new Space(endpoints);
@@ -357,24 +360,26 @@ var endpoints = {
     new HttpRequest("POST", "/friendRequest/3", 3),
     new HttpRequest("POST", "/block/4", 4)
   ]);
-  const shape = space.getVectors();
+  const shape = space.getVectors(1);
+  assert3.equal(shape.temperature, 2);
+  assert3.equal(shape.pressure, 2);
   assert3.equal(shape.vectors.length, 4);
   assert3.equal(shape.angles.length, 4);
   assert3.equal(shape.vectors[0].type, 0);
-  assert3.equal(shape.vectors[0].x, 0);
-  assert3.equal(shape.vectors[0].y, 3);
+  assert3.equal(shape.vectors[0].content, 0);
+  assert3.equal(shape.vectors[0].context, 3);
   assert3.equal(shape.angles[0], 270);
   assert3.equal(shape.vectors[1].type, 1);
-  assert3.equal(shape.vectors[1].x, 0);
-  assert3.equal(shape.vectors[1].y, -1);
+  assert3.equal(shape.vectors[1].content, 0);
+  assert3.equal(shape.vectors[1].context, -1);
   assert3.equal(shape.angles[1], 18.43494882292201);
   assert3.equal(shape.vectors[2].type, 2);
-  assert3.equal(shape.vectors[2].x, 3);
-  assert3.equal(shape.vectors[2].y, 0);
+  assert3.equal(shape.vectors[2].content, 3);
+  assert3.equal(shape.vectors[2].context, 0);
   assert3.equal(shape.angles[2], 180);
   assert3.equal(shape.vectors[3].type, 3);
-  assert3.equal(shape.vectors[3].x, -1);
-  assert3.equal(shape.vectors[3].y, 0);
+  assert3.equal(shape.vectors[3].content, -1);
+  assert3.equal(shape.vectors[3].context, 0);
   assert3.equal(shape.angles[3], 71.56505117707799);
 });
 (0, import_uvu3.test)("Space: Get Vectors 1", async () => {
@@ -384,20 +389,22 @@ var endpoints = {
     new HttpRequest("POST", "/video", 2),
     new HttpRequest("POST", "/friendRequest/3", 3)
   ]);
-  const shape = space.getVectors();
+  const shape = space.getVectors(1);
+  assert3.equal(shape.temperature, 1);
+  assert3.equal(shape.pressure, 3);
   assert3.equal(shape.vectors.length, 3);
   assert3.equal(shape.angles.length, 3);
   assert3.equal(shape.vectors[0].type, 0);
-  assert3.equal(shape.vectors[0].x, 0);
-  assert3.equal(shape.vectors[0].y, 2);
+  assert3.equal(shape.vectors[0].content, 0);
+  assert3.equal(shape.vectors[0].context, 2);
   assert3.equal(shape.angles[0], 270);
   assert3.equal(shape.vectors[1].type, 1);
-  assert3.equal(shape.vectors[1].x, 0);
-  assert3.equal(shape.vectors[1].y, -1);
+  assert3.equal(shape.vectors[1].content, 0);
+  assert3.equal(shape.vectors[1].context, -1);
   assert3.equal(shape.angles[1], 18.43494882292201);
   assert3.equal(shape.vectors[2].type, 2);
-  assert3.equal(shape.vectors[2].x, 3);
-  assert3.equal(shape.vectors[2].y, 0);
+  assert3.equal(shape.vectors[2].content, 3);
+  assert3.equal(shape.vectors[2].context, 0);
   assert3.equal(shape.angles[2], 146.30993247402023);
 });
 (0, import_uvu3.test)("Space: Get Points from JSON endpoints", async () => {
@@ -451,42 +458,39 @@ var endpoints = {
     new HttpRequest("POST", "/block/4", 4)
   ]);
   const points = space.getPoints();
-  assert3.equal(points.socialCreate.length, 3);
-  assert3.equal(points.personalCreate.length, 1);
-  assert3.equal(points.personalDestroy.length, 3);
-  assert3.equal(points.socialDestroy.length, 1);
-  assert3.equal(points.socialCreate[0].type, 0);
-  assert3.equal(points.socialCreate[0].content, 0);
-  assert3.equal(points.socialCreate[0].context, 1);
-  assert3.equal(points.socialCreate[0].time, 1);
-  assert3.equal(points.socialCreate[1].type, 0);
-  assert3.equal(points.socialCreate[1].content, 0);
-  assert3.equal(points.socialCreate[1].context, 1);
-  assert3.equal(points.socialCreate[1].time, 3);
-  assert3.equal(points.socialCreate[2].type, 0);
-  assert3.equal(points.socialCreate[2].content, 0);
-  assert3.equal(points.socialCreate[2].context, 1);
-  assert3.equal(points.socialCreate[2].time, 4);
-  assert3.equal(points.personalCreate[0].type, 1);
-  assert3.equal(points.personalCreate[0].content, 0);
-  assert3.equal(points.personalCreate[0].context, -1);
-  assert3.equal(points.personalCreate[0].time, 2);
-  assert3.equal(points.personalDestroy[0].type, 2);
-  assert3.equal(points.personalDestroy[0].content, 1);
-  assert3.equal(points.personalDestroy[0].context, 0);
-  assert3.equal(points.personalDestroy[0].time, 1);
-  assert3.equal(points.personalDestroy[1].type, 2);
-  assert3.equal(points.personalDestroy[1].content, 1);
-  assert3.equal(points.personalDestroy[1].context, 0);
-  assert3.equal(points.personalDestroy[1].time, 2);
-  assert3.equal(points.personalDestroy[2].type, 2);
-  assert3.equal(points.personalDestroy[2].content, 1);
-  assert3.equal(points.personalDestroy[2].context, 0);
-  assert3.equal(points.personalDestroy[2].time, 3);
-  assert3.equal(points.socialDestroy[0].type, 3);
-  assert3.equal(points.socialDestroy[0].content, -1);
-  assert3.equal(points.socialDestroy[0].context, 0);
-  assert3.equal(points.socialDestroy[0].time, 4);
+  assert3.equal(points.length, 8);
+  assert3.equal(points[0].type, 0);
+  assert3.equal(points[0].content, 0);
+  assert3.equal(points[0].context, 1);
+  assert3.equal(points[0].time, 1);
+  assert3.equal(points[1].type, 0);
+  assert3.equal(points[1].content, 0);
+  assert3.equal(points[1].context, 1);
+  assert3.equal(points[1].time, 3);
+  assert3.equal(points[2].type, 0);
+  assert3.equal(points[2].content, 0);
+  assert3.equal(points[2].context, 1);
+  assert3.equal(points[2].time, 4);
+  assert3.equal(points[3].type, 1);
+  assert3.equal(points[3].content, 0);
+  assert3.equal(points[3].context, -1);
+  assert3.equal(points[3].time, 2);
+  assert3.equal(points[4].type, 2);
+  assert3.equal(points[4].content, 1);
+  assert3.equal(points[4].context, 0);
+  assert3.equal(points[4].time, 1);
+  assert3.equal(points[5].type, 2);
+  assert3.equal(points[5].content, 1);
+  assert3.equal(points[5].context, 0);
+  assert3.equal(points[5].time, 2);
+  assert3.equal(points[6].type, 2);
+  assert3.equal(points[6].content, 1);
+  assert3.equal(points[6].context, 0);
+  assert3.equal(points[6].time, 3);
+  assert3.equal(points[7].type, 3);
+  assert3.equal(points[7].content, -1);
+  assert3.equal(points[7].context, 0);
+  assert3.equal(points[7].time, 4);
 });
 
 // tests/vector.ts
@@ -501,17 +505,17 @@ var assert4 = __toESM(require("uvu/assert"));
   const personalCreateVector = personalCreate.toVector();
   const personalDestroyVector = personalDestroy.toVector();
   const socialDestroyVector = socialDestroy.toVector();
-  assert4.equal(socialCreateVector.x, 1);
-  assert4.equal(socialCreateVector.y, 1);
+  assert4.equal(socialCreateVector.content, 1);
+  assert4.equal(socialCreateVector.context, 1);
   assert4.equal(socialCreateVector.type, 0 /* socialCreate */);
-  assert4.equal(personalCreateVector.x, 1);
-  assert4.equal(personalCreateVector.y, 1);
+  assert4.equal(personalCreateVector.content, 1);
+  assert4.equal(personalCreateVector.context, 1);
   assert4.equal(personalCreateVector.type, 1 /* personalCreate */);
-  assert4.equal(personalDestroyVector.x, 1);
-  assert4.equal(personalDestroyVector.y, 1);
+  assert4.equal(personalDestroyVector.content, 1);
+  assert4.equal(personalDestroyVector.context, 1);
   assert4.equal(personalDestroyVector.type, 2 /* personalDestroy */);
-  assert4.equal(socialDestroyVector.x, 1);
-  assert4.equal(socialDestroyVector.y, 1);
+  assert4.equal(socialDestroyVector.content, 1);
+  assert4.equal(socialDestroyVector.context, 1);
   assert4.equal(socialDestroyVector.type, 3 /* socialDestroy */);
 });
 (0, import_uvu4.test)("Vector: To 1/0 Vector", async () => {
@@ -523,17 +527,17 @@ var assert4 = __toESM(require("uvu/assert"));
   const personalCreateVector = personalCreate.toVector();
   const personalDestroyVector = personalDestroy.toVector();
   const socialDestroyVector = socialDestroy.toVector();
-  assert4.equal(socialCreateVector.x, 1);
-  assert4.equal(socialCreateVector.y, 0);
+  assert4.equal(socialCreateVector.content, 1);
+  assert4.equal(socialCreateVector.context, 0);
   assert4.equal(socialCreateVector.type, 0 /* socialCreate */);
-  assert4.equal(personalCreateVector.x, 1);
-  assert4.equal(personalCreateVector.y, 0);
+  assert4.equal(personalCreateVector.content, 1);
+  assert4.equal(personalCreateVector.context, 0);
   assert4.equal(personalCreateVector.type, 1 /* personalCreate */);
-  assert4.equal(personalDestroyVector.x, 1);
-  assert4.equal(personalDestroyVector.y, 0);
+  assert4.equal(personalDestroyVector.content, 1);
+  assert4.equal(personalDestroyVector.context, 0);
   assert4.equal(personalDestroyVector.type, 2 /* personalDestroy */);
-  assert4.equal(socialDestroyVector.x, 1);
-  assert4.equal(socialDestroyVector.y, 0);
+  assert4.equal(socialDestroyVector.content, 1);
+  assert4.equal(socialDestroyVector.context, 0);
   assert4.equal(socialDestroyVector.type, 3 /* socialDestroy */);
 });
 (0, import_uvu4.test)("Vector: To 0/1 Vector", async () => {
@@ -545,17 +549,17 @@ var assert4 = __toESM(require("uvu/assert"));
   const personalCreateVector = personalCreate.toVector();
   const personalDestroyVector = personalDestroy.toVector();
   const socialDestroyVector = socialDestroy.toVector();
-  assert4.equal(socialCreateVector.x, 0);
-  assert4.equal(socialCreateVector.y, 1);
+  assert4.equal(socialCreateVector.content, 0);
+  assert4.equal(socialCreateVector.context, 1);
   assert4.equal(socialCreateVector.type, 0 /* socialCreate */);
-  assert4.equal(personalCreateVector.x, 0);
-  assert4.equal(personalCreateVector.y, 1);
+  assert4.equal(personalCreateVector.content, 0);
+  assert4.equal(personalCreateVector.context, 1);
   assert4.equal(personalCreateVector.type, 1 /* personalCreate */);
-  assert4.equal(personalDestroyVector.x, 0);
-  assert4.equal(personalDestroyVector.y, 1);
+  assert4.equal(personalDestroyVector.content, 0);
+  assert4.equal(personalDestroyVector.context, 1);
   assert4.equal(personalDestroyVector.type, 2 /* personalDestroy */);
-  assert4.equal(socialDestroyVector.x, 0);
-  assert4.equal(socialDestroyVector.y, 1);
+  assert4.equal(socialDestroyVector.content, 0);
+  assert4.equal(socialDestroyVector.context, 1);
   assert4.equal(socialDestroyVector.type, 3 /* socialDestroy */);
 });
 (0, import_uvu4.test)("Vector: To 100/1 Vector", async () => {
@@ -567,17 +571,17 @@ var assert4 = __toESM(require("uvu/assert"));
   const personalCreateVector = personalCreate.toVector();
   const personalDestroyVector = personalDestroy.toVector();
   const socialDestroyVector = socialDestroy.toVector();
-  assert4.equal(socialCreateVector.x, 100);
-  assert4.equal(socialCreateVector.y, 1);
+  assert4.equal(socialCreateVector.content, 100);
+  assert4.equal(socialCreateVector.context, 1);
   assert4.equal(socialCreateVector.type, 0 /* socialCreate */);
-  assert4.equal(personalCreateVector.x, 100);
-  assert4.equal(personalCreateVector.y, 1);
+  assert4.equal(personalCreateVector.content, 100);
+  assert4.equal(personalCreateVector.context, 1);
   assert4.equal(personalCreateVector.type, 1 /* personalCreate */);
-  assert4.equal(personalDestroyVector.x, 100);
-  assert4.equal(personalDestroyVector.y, 1);
+  assert4.equal(personalDestroyVector.content, 100);
+  assert4.equal(personalDestroyVector.context, 1);
   assert4.equal(personalDestroyVector.type, 2 /* personalDestroy */);
-  assert4.equal(socialDestroyVector.x, 100);
-  assert4.equal(socialDestroyVector.y, 1);
+  assert4.equal(socialDestroyVector.content, 100);
+  assert4.equal(socialDestroyVector.context, 1);
   assert4.equal(socialDestroyVector.type, 3 /* socialDestroy */);
 });
 (0, import_uvu4.test)("Vector: To 1/100 Vector", async () => {
@@ -589,23 +593,18 @@ var assert4 = __toESM(require("uvu/assert"));
   const personalCreateVector = personalCreate.toVector();
   const personalDestroyVector = personalDestroy.toVector();
   const socialDestroyVector = socialDestroy.toVector();
-  assert4.equal(socialCreateVector.x, 1);
-  assert4.equal(socialCreateVector.y, 100);
+  assert4.equal(socialCreateVector.content, 1);
+  assert4.equal(socialCreateVector.context, 100);
   assert4.equal(socialCreateVector.type, 0 /* socialCreate */);
-  assert4.equal(personalCreateVector.x, 1);
-  assert4.equal(personalCreateVector.y, 100);
+  assert4.equal(personalCreateVector.content, 1);
+  assert4.equal(personalCreateVector.context, 100);
   assert4.equal(personalCreateVector.type, 1 /* personalCreate */);
-  assert4.equal(personalDestroyVector.x, 1);
-  assert4.equal(personalDestroyVector.y, 100);
+  assert4.equal(personalDestroyVector.content, 1);
+  assert4.equal(personalDestroyVector.context, 100);
   assert4.equal(personalDestroyVector.type, 2 /* personalDestroy */);
-  assert4.equal(socialDestroyVector.x, 1);
-  assert4.equal(socialDestroyVector.y, 100);
+  assert4.equal(socialDestroyVector.content, 1);
+  assert4.equal(socialDestroyVector.context, 100);
   assert4.equal(socialDestroyVector.type, 3 /* socialDestroy */);
-});
-(0, import_uvu4.test)("Vector: To 1/1 Vector", async () => {
-  const point = new QuadrantPoint(1 /* personalCreate */, 0, -1);
-  const vector = point.toVector();
-  console.log(vector);
 });
 
 // tests/index.ts

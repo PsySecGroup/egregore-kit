@@ -13,20 +13,20 @@ test('Vector: To 1/1 Vector', async () => {
   const personalDestroyVector = personalDestroy.toVector()
   const socialDestroyVector = socialDestroy.toVector()
 
-  assert.equal(socialCreateVector.x, 1)
-  assert.equal(socialCreateVector.y, 1)
+  assert.equal(socialCreateVector.content, 1)
+  assert.equal(socialCreateVector.context, 1)
   assert.equal(socialCreateVector.type, QuadrantType.socialCreate)
 
-  assert.equal(personalCreateVector.x, 1)
-  assert.equal(personalCreateVector.y, 1)
+  assert.equal(personalCreateVector.content, 1)
+  assert.equal(personalCreateVector.context, 1)
   assert.equal(personalCreateVector.type, QuadrantType.personalCreate)
 
-  assert.equal(personalDestroyVector.x, 1)
-  assert.equal(personalDestroyVector.y, 1)
+  assert.equal(personalDestroyVector.content, 1)
+  assert.equal(personalDestroyVector.context, 1)
   assert.equal(personalDestroyVector.type, QuadrantType.personalDestroy)
 
-  assert.equal(socialDestroyVector.x, 1)
-  assert.equal(socialDestroyVector.y, 1)
+  assert.equal(socialDestroyVector.content, 1)
+  assert.equal(socialDestroyVector.context, 1)
   assert.equal(socialDestroyVector.type, QuadrantType.socialDestroy)
 })
 
@@ -41,20 +41,20 @@ test('Vector: To 1/0 Vector', async () => {
   const personalDestroyVector = personalDestroy.toVector()
   const socialDestroyVector = socialDestroy.toVector()
 
-  assert.equal(socialCreateVector.x, 1)
-  assert.equal(socialCreateVector.y, 0)
+  assert.equal(socialCreateVector.content, 1)
+  assert.equal(socialCreateVector.context, 0)
   assert.equal(socialCreateVector.type, QuadrantType.socialCreate)
 
-  assert.equal(personalCreateVector.x, 1)
-  assert.equal(personalCreateVector.y, 0)
+  assert.equal(personalCreateVector.content, 1)
+  assert.equal(personalCreateVector.context, 0)
   assert.equal(personalCreateVector.type, QuadrantType.personalCreate)
 
-  assert.equal(personalDestroyVector.x, 1)
-  assert.equal(personalDestroyVector.y, 0)
+  assert.equal(personalDestroyVector.content, 1)
+  assert.equal(personalDestroyVector.context, 0)
   assert.equal(personalDestroyVector.type, QuadrantType.personalDestroy)
 
-  assert.equal(socialDestroyVector.x, 1)
-  assert.equal(socialDestroyVector.y, 0)
+  assert.equal(socialDestroyVector.content, 1)
+  assert.equal(socialDestroyVector.context, 0)
   assert.equal(socialDestroyVector.type, QuadrantType.socialDestroy)
 })
 
@@ -69,20 +69,20 @@ test('Vector: To 0/1 Vector', async () => {
   const personalDestroyVector = personalDestroy.toVector()
   const socialDestroyVector = socialDestroy.toVector()
 
-  assert.equal(socialCreateVector.x, 0)
-  assert.equal(socialCreateVector.y, 1)
+  assert.equal(socialCreateVector.content, 0)
+  assert.equal(socialCreateVector.context, 1)
   assert.equal(socialCreateVector.type, QuadrantType.socialCreate)
 
-  assert.equal(personalCreateVector.x, 0)
-  assert.equal(personalCreateVector.y, 1)
+  assert.equal(personalCreateVector.content, 0)
+  assert.equal(personalCreateVector.context, 1)
   assert.equal(personalCreateVector.type, QuadrantType.personalCreate)
 
-  assert.equal(personalDestroyVector.x, 0)
-  assert.equal(personalDestroyVector.y, 1)
+  assert.equal(personalDestroyVector.content, 0)
+  assert.equal(personalDestroyVector.context, 1)
   assert.equal(personalDestroyVector.type, QuadrantType.personalDestroy)
 
-  assert.equal(socialDestroyVector.x, 0)
-  assert.equal(socialDestroyVector.y, 1)
+  assert.equal(socialDestroyVector.content, 0)
+  assert.equal(socialDestroyVector.context, 1)
   assert.equal(socialDestroyVector.type, QuadrantType.socialDestroy)
 })
 
@@ -97,20 +97,20 @@ test('Vector: To 100/1 Vector', async () => {
   const personalDestroyVector = personalDestroy.toVector()
   const socialDestroyVector = socialDestroy.toVector()
 
-  assert.equal(socialCreateVector.x, 100)
-  assert.equal(socialCreateVector.y, 1)
+  assert.equal(socialCreateVector.content, 100)
+  assert.equal(socialCreateVector.context, 1)
   assert.equal(socialCreateVector.type, QuadrantType.socialCreate)
 
-  assert.equal(personalCreateVector.x, 100)
-  assert.equal(personalCreateVector.y, 1)
+  assert.equal(personalCreateVector.content, 100)
+  assert.equal(personalCreateVector.context, 1)
   assert.equal(personalCreateVector.type, QuadrantType.personalCreate)
 
-  assert.equal(personalDestroyVector.x, 100)
-  assert.equal(personalDestroyVector.y, 1)
+  assert.equal(personalDestroyVector.content, 100)
+  assert.equal(personalDestroyVector.context, 1)
   assert.equal(personalDestroyVector.type, QuadrantType.personalDestroy)
 
-  assert.equal(socialDestroyVector.x, 100)
-  assert.equal(socialDestroyVector.y, 1)
+  assert.equal(socialDestroyVector.content, 100)
+  assert.equal(socialDestroyVector.context, 1)
   assert.equal(socialDestroyVector.type, QuadrantType.socialDestroy)
 })
 
@@ -125,26 +125,19 @@ test('Vector: To 1/100 Vector', async () => {
   const personalDestroyVector = personalDestroy.toVector()
   const socialDestroyVector = socialDestroy.toVector()
 
-  assert.equal(socialCreateVector.x, 1)
-  assert.equal(socialCreateVector.y, 100)
+  assert.equal(socialCreateVector.content, 1)
+  assert.equal(socialCreateVector.context, 100)
   assert.equal(socialCreateVector.type, QuadrantType.socialCreate)
 
-  assert.equal(personalCreateVector.x, 1)
-  assert.equal(personalCreateVector.y, 100)
+  assert.equal(personalCreateVector.content, 1)
+  assert.equal(personalCreateVector.context, 100)
   assert.equal(personalCreateVector.type, QuadrantType.personalCreate)
 
-  assert.equal(personalDestroyVector.x, 1)
-  assert.equal(personalDestroyVector.y, 100)
+  assert.equal(personalDestroyVector.content, 1)
+  assert.equal(personalDestroyVector.context, 100)
   assert.equal(personalDestroyVector.type, QuadrantType.personalDestroy)
 
-  assert.equal(socialDestroyVector.x, 1)
-  assert.equal(socialDestroyVector.y, 100)
+  assert.equal(socialDestroyVector.content, 1)
+  assert.equal(socialDestroyVector.context, 100)
   assert.equal(socialDestroyVector.type, QuadrantType.socialDestroy)
-})
-
-test('Vector: To 1/1 Vector', async () => {
-  const point = new QuadrantPoint(QuadrantType.personalCreate, 0, -1)
-  const vector = point.toVector()
-
-  console.log(vector)
 })

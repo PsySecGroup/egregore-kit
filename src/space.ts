@@ -37,7 +37,7 @@ function requestSearch (list: HttpRequest[], request: HttpRequest) {
  * 
  */
  function getDegrees (a: Vector, b: Vector, offset = 360) {
-  const slope = (b.y - a.y) / (b.x - a.x)
+  const slope = (b.context - a.context) / (b.content - a.content)
   const degree = Math.atan(slope) * PI_RADIAN
   let angle = degree % 360;
   
@@ -126,12 +126,12 @@ export class Space {
    * 
    */
   getPoints () {
-    return {
-      socialCreate: this.points[QuadrantType.socialCreate],
-      personalCreate: this.points[QuadrantType.personalCreate],
-      personalDestroy: this.points[QuadrantType.personalDestroy],
-      socialDestroy: this.points[QuadrantType.socialDestroy]
-    }
+    return[
+      ...this.points[QuadrantType.socialCreate],
+      ...this.points[QuadrantType.personalCreate],
+      ...this.points[QuadrantType.personalDestroy],
+      ...this.points[QuadrantType.socialDestroy]
+    ]
   }
 
   /**
@@ -158,26 +158,34 @@ export class Space {
   /**
    * 
    */
-  getVectors () {
+  getVectors (users: number) {
+    const vectors = [
+      this._reduce(this.points[QuadrantType.socialCreate]),
+      this._reduce(this.points[QuadrantType.personalCreate]),
+      this._reduce(this.points[QuadrantType.personalDestroy]),
+      this._reduce(this.points[QuadrantType.socialDestroy])
+    ].filter(vector => vector !== false) as Vector[]
+
     const result = {
-      temperature: NaN, // @TODO
-      pressure: NaN, // @TODO
-      vectors: [
-        this._reduce(this.points[QuadrantType.socialCreate]),
-        this._reduce(this.points[QuadrantType.personalCreate]),
-        this._reduce(this.points[QuadrantType.personalDestroy]),
-        this._reduce(this.points[QuadrantType.socialDestroy])
-      ].filter(vector => vector !== false) as Vector[],
+      temperature: 0,
+      pressure: 0,
+      vectors,
       angles: []
     }
 
     for (let i = 0, len = result.vectors.length; i < len; i++) {
+      const vector = result.vectors[i]
       const nextVector = result.vectors[i + 1] === undefined
         ? result.vectors[0]
         : result.vectors[i + 1]
 
-      result.angles.push(getDegrees(result.vectors[i], nextVector, 360 - (i * 90)))
+      result.angles.push(getDegrees(vector, nextVector, 360 - (i * 90)))
+      result.temperature += vector.context
+      result.pressure +=  vector.content
     }
+
+    result.temperature /= users
+    result.pressure /= users
 
     return result
   }

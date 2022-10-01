@@ -33,12 +33,8 @@ The Egregore Kit operates from the assumption that egregores are [state of matte
 * Four vectors can be created from each point with the following properties:
   * _Context magnitude_, which is the position of the point on the context axis.
   * _Content magnitude_, which is the position of the point on the content axis.
-  * _Angle_, which is established in the follow cases:
-    * Social Create vector: `((Math.atan(Math.abs(contextPosition) / Math.abs(contentPosition)) * (180 / Math.PI)) / 360) || -1`
-    * Personal Create vector: `((360 - Math.atan(Math.abs(contextPosition) / Math.abs(contentPosition)) * (180 / Math.PI)) / 360) || -1`
-    * Personal Destroy vector: `((180 + Math.atan(Math.abs(contextPosition) / Math.abs(contentPosition)) * (180 / Math.PI)) / 360) || -1`
-    * Social Destroy vector: `((180 - Math.atan(Math.abs(contextPosition) / Math.abs(contentPosition)) * (180 / Math.PI)) / 360) || -1`
-* There should only be one point per orthogonal quadrant whose relevent axes position increases by 1 for each action performed:
+  * _Type*, which is the kind of vector being represented (_socialCreate, personalCreate, personalDestroy, socialDestroy_)
+* There should only be one point per orthogonal quadrant whose relevent axes position increases by 1 for each action prformed:
 
 ![Context-Context Space](docs/Content-Context-Space-Example.png "Content-Context Space")
 
@@ -47,55 +43,88 @@ The Egregore Kit operates from the assumption that egregores are [state of matte
 ```ts
 import { HttpRequest, Space } from 'egregore-kit'
 
-// Define what HTTP REST endpoints represent what quadrants in the Context-Content Space
+// Define what HTTP REST endpoints represent what quadrants in the Context-Content Space.
+// Wildcards can be used for complex URIs
 const space = new Space({
-  socialCreate: [
-    new HttpRequest('POST', '/like/*'),
-    new HttpRequest('POST', '/favorite/*'),
-    new HttpRequest('POST', '/friendRequest/*')
-    new HttpRequest('POST', '/post/*/comment'),
-    new HttpRequest('POST', '/search/*'),
-    new HttpRequest('POST', '/joinGroup/*'),
-  ]
-  personalCreate: [
-    new HttpRequest('POST', '/video'),
-    new HttpRequest('POST', '/post'),
-    new HttpRequest('POST', '/post/*/comment'),
-    new HttpRequest('POST', '/settings'),
-    new HttpRequest('POST', '/changePassword'),
-  ]
-  personalDestroy: [
-    new HttpRequest('DELETE', '/video/*'),
-    new HttpRequest('DELETE', '/post/*'),
-    new HttpRequest('DELETE', '/comment/*'),
-    new HttpRequest('PUT', '/video/*'),
-    new HttpRequest('PUT', '/post/*'),
-    new HttpRequest('PUT', '/comment/*'),
-  ]
-  socialDestroy: [
-    new HttpRequest('POST', '/report'),
-    new HttpRequest('POST', '/block/*'),
-    new HttpRequest('POST', '/unfriend/*'),
-  ]
-})
+    social: [
+      'POST /like/*',
+      'POST /favorite/*',
+      'POST /friendRequest/*',
+      'POST /post/*/comment',
+      'POST /search/*',
+      'POST /joinGroup/*',
+      'POST /report',
+      'POST /block/*',
+      'POST /unfriend/*'
+    ],
+    personal: [
+      'POST /video',
+      'POST /post',
+      'POST /settings',
+      'POST /changePassword',
+    ],
+    create: [
+      'POST /video',
+      'POST /post',
+      'POST /post/*/comment',
+      'POST /like/*',
+      'POST /favorite/*',
+      'POST /friendRequest/*',
+      'POST /post/*/comment',
+      'POST /search/*',
+      'POST /joinGroup/*'
+    ],
+    destroy: [
+      'DELETE /video/*',
+      'POST /changePassword',
+      'POST /settings',
+      'DELETE /post/*',
+      'DELETE /comment/*',
+      'PUT /video/*',
+      'PUT /post/*',
+      'PUT /comment/*',
+      'POST /report',
+      'POST /block/*',
+      'POST /unfriend/*'
+    ]
+  })
 
-// Populate the space with HTTP Requests
+// Populate the space with HTTP Requests from methods, endpoints, and timestamps extracted from an Nginx or Apache log
 space.addRequests([
-  new HttpRequest('POST', '/like/41', 1),
-  new HttpRequest('POST', '/favorite/534', 2),
-  new HttpRequest('POST', '/friendRequest/bob', 3)
-  new HttpRequest('POST', '/post/3345/comment', 4),
-  new HttpRequest('POST', '/like/417', 1),
-  new HttpRequest('POST', '/favorite/5334', 2),
-  new HttpRequest('POST', '/friendRequest/adam', 3)
-  new HttpRequest('POST', '/post/33145/comment', 4),
-  new HttpRequest('POST', '/report', 10)
+  new HttpRequest('POST', '/like/1', 1664661095644),
+  new HttpRequest('POST', '/video', 1664661096644),
+  new HttpRequest('POST', '/friendRequest/3', 1664661097644),
+  new HttpRequest('POST', '/block/4', 1664661097644)
 ])
 
-// Get the shape of the space
-console.log(space.getShape())
-```
-## TODO
+// Get an array of where the HTTP Requests distributed across the Context-Context space
+const points = space.getPoints()
+/*
+[
+  { type: 0, content: 0, context: 1, time: 1 },
+  { type: 0, content: 0, context: 1, time: 3 },
+  { type: 0, content: 0, context: 1, time: 4 },
+  { type: 1, content: 0, context: -1, time: 2 },
+  { type: 2, content: 1, context: 0, time: 1 },
+  { type: 2, content: 1, context: 0, time: 2 },
+  { type: 2, content: 1, context: 0, time: 3 },
+  { type: 3, content: -1, context: 0, time: 4 }
+]
+*/
 
-* Add temperature
-* Add pressure
+// Sum together each content and context position into one vector per quadrant, calculate the angles between each point, and calculate the temperature and pressure of the shape
+const vectors = space.getVectors(3)
+/*
+{
+  temperature: 2,
+  pressure: 2,
+  vectors: [
+    Vector { type: 0, x: 0, y: 3 },
+    Vector { type: 1, x: 0, y: -1 },
+    Vector { type: 2, x: 3, y: 0 },
+    Vector { type: 3, x: -1, y: 0 }
+  ],
+  angles: [ 270, 18.43494882292201, 180, 71.56505117707799 ]
+}
+*/
+```

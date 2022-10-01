@@ -1,7 +1,7 @@
 {
   "name": "egregore-kit",
   "description": "Easily sets up TypeScript server-side projects that are StackBlitz compliant.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "The PsySec Group",
   "license": "MIT",
   "bugs": {
