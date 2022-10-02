@@ -51,6 +51,7 @@
     "easy-match": "^1.1.5",
     "fastify": "^4.7.0",
     "is-negative-zero": "^2.0.2",
+    "node-fetch": "2.6.6",
     "ts-node": "^10.8.1"
   }
 }

@@ -3,14 +3,14 @@ import { HttpRequest } from "./httpRequest"
 import { QuadrantPoint, QuadrantType } from "./quadrantPoint"
 import { Vector } from "./vector"
 
-interface MethodStringMap {
+export interface MethodStringMap {
   social: string[]
   personal: string[]
   create: string[]
   destroy: string[]
 }
 
-interface MethodMap {
+export interface MethodMap {
   social: HttpRequest[]
   personal: HttpRequest[]
   create: HttpRequest[]
@@ -54,15 +54,35 @@ function requestSearch (list: HttpRequest[], request: HttpRequest) {
  * 
  */
 export class Space {
-  private endpoints: MethodMap
-  private points: QuadrantPoints = {
+  readonly endpoints: MethodMap
+  readonly points: QuadrantPoints = {
     [QuadrantType.socialCreate]: [],
     [QuadrantType.personalCreate]: [],
     [QuadrantType.personalDestroy]: [],
     [QuadrantType.socialDestroy]: []
   }
 
-  constructor (endpoints: MethodMap | MethodStringMap) {
+  /**
+   * 
+   */
+  static fromJson (line: string) {
+    const json = JSON.parse(line)
+    const endpoints: MethodStringMap = json.endpoints
+    const points: QuadrantPoints = {
+      [QuadrantType.socialCreate]: json.points[QuadrantType.socialCreate].map(point => new QuadrantPoint(point)),
+      [QuadrantType.personalCreate]: json.points[QuadrantType.personalCreate].map(point => new QuadrantPoint(point)),
+      [QuadrantType.personalDestroy]: json.points[QuadrantType.personalDestroy].map(point => new QuadrantPoint(point)),
+      [QuadrantType.socialDestroy]: json.points[QuadrantType.socialDestroy].map(point => new QuadrantPoint(point))
+    }
+
+    return new Space(endpoints, points)
+  }
+
+  constructor (endpoints: MethodMap | MethodStringMap, points?: QuadrantPoints) {
+    if (points !== undefined) {
+      this.points = points
+    }
+
     const social: HttpRequest[] = typeof endpoints.social[0] !== 'string'
       ? endpoints.social as HttpRequest[]
       : endpoints.social.map(endpoint => {
@@ -188,5 +208,20 @@ export class Space {
     result.pressure /= users
 
     return result
+  }
+
+  /**
+   * 
+   */
+  toJson () {
+    return {
+      endpoints: {
+        social: this.endpoints.social.map(element => element.method + ' ' + element.endpoint),
+        personal: this.endpoints.personal.map(element => element.method + ' ' + element.endpoint),
+        create: this.endpoints.create.map(element => element.method + ' ' + element.endpoint),
+        destroy: this.endpoints.destroy.map(element => element.method + ' ' + element.endpoint)
+      },
+      points: this.points
+    }
   }
 }

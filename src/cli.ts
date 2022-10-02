@@ -1,7 +1,6 @@
 #!/bin/bash
 
 import { Command } from 'commander'
-import { getPipeAsArray } from './pipe'
 
 const { name, description, version } = require('../package.json')
 
@@ -12,6 +11,16 @@ program
   .description(description)
   .version(version)
 
+program.command('update')
+  .description('Updates a report')
+  .argument('<name>', 'Identifier of the report to update')
+  .argument('<endpoints>', 'Endpoint schema path to use')
+  .argument('[source]', 'CSV string of "METHOD ENDPOINT" strings, a URL.  This argument can be ignored when using Linux piping.')
+  .action(async (name: string, endpoints: string, source: string) => {
+    // @TODO
+    console.log(name, source)   
+  })
+/*
 program.command('split')
   .description('')
   .argument('<string>', 'string to split')
@@ -21,12 +30,8 @@ program.command('split')
     const limit = first ? 1 : undefined;
     console.log(arg.split(separator, limit));
   })
-
+*/
 async function main () {
-  await getPipeAsArray(async (chunk: string[]) => {
-    console.log(chunk)
-  })
-
   program.parse()
 }
 

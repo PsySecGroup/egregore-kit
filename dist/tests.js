@@ -15,7 +15,7 @@ var __copyProps = (to, from, except, desc) => {
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
 
 // tests/index.ts
-var import_uvu5 = require("uvu");
+var import_uvu6 = require("uvu");
 
 // tests/httpRequest.ts
 var import_uvu = require("uvu");
@@ -39,6 +39,20 @@ var HttpRequest = class {
     return (0, import_easy_match.default)([this.method], [query.method]).ismatch && (0, import_easy_match.default)([this.endpoint], [query.endpoint]).ismatch;
   }
 };
+
+// src/report.ts
+var import_node_fetch = __toESM(require("node-fetch"));
+
+// src/config.ts
+var import_path = require("path");
+require("dotenv").config();
+var HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+var PORT = parseInt(process.env.PORT) || 3e3;
+var REPORT_DIR = process.env.REPORT_DIR || (0, import_path.resolve)(__dirname, "../reports");
+
+// src/report.ts
+var import_promises = require("fs/promises");
+var import_fs = require("fs");
 
 // src/vector.ts
 var Vector = class {
@@ -94,26 +108,29 @@ function getDegrees(a, b, offset = 360) {
   return angle;
 }
 var Space = class {
-  constructor(endpoints2) {
+  constructor(endpoints3, points) {
     this.points = {
       [0 /* socialCreate */]: [],
       [1 /* personalCreate */]: [],
       [2 /* personalDestroy */]: [],
       [3 /* socialDestroy */]: []
     };
-    const social = typeof endpoints2.social[0] !== "string" ? endpoints2.social : endpoints2.social.map((endpoint) => {
+    if (points !== void 0) {
+      this.points = points;
+    }
+    const social = typeof endpoints3.social[0] !== "string" ? endpoints3.social : endpoints3.social.map((endpoint) => {
       const parts = endpoint.split(" ");
       return new HttpRequest(parts[0], parts[1]);
     });
-    const personal = typeof endpoints2.personal[0] !== "string" ? endpoints2.personal : endpoints2.personal.map((endpoint) => {
+    const personal = typeof endpoints3.personal[0] !== "string" ? endpoints3.personal : endpoints3.personal.map((endpoint) => {
       const parts = endpoint.split(" ");
       return new HttpRequest(parts[0], parts[1]);
     });
-    const create = typeof endpoints2.create[0] !== "string" ? endpoints2.create : endpoints2.create.map((endpoint) => {
+    const create = typeof endpoints3.create[0] !== "string" ? endpoints3.create : endpoints3.create.map((endpoint) => {
       const parts = endpoint.split(" ");
       return new HttpRequest(parts[0], parts[1]);
     });
-    const destroy = typeof endpoints2.destroy[0] !== "string" ? endpoints2.destroy : endpoints2.destroy.map((endpoint) => {
+    const destroy = typeof endpoints3.destroy[0] !== "string" ? endpoints3.destroy : endpoints3.destroy.map((endpoint) => {
       const parts = endpoint.split(" ");
       return new HttpRequest(parts[0], parts[1]);
     });
@@ -123,6 +140,17 @@ var Space = class {
       create,
       destroy
     };
+  }
+  static fromJson(line) {
+    const json = JSON.parse(line);
+    const endpoints3 = json.endpoints;
+    const points = {
+      [0 /* socialCreate */]: json.points[0 /* socialCreate */].map((point) => new QuadrantPoint(point)),
+      [1 /* personalCreate */]: json.points[1 /* personalCreate */].map((point) => new QuadrantPoint(point)),
+      [2 /* personalDestroy */]: json.points[2 /* personalDestroy */].map((point) => new QuadrantPoint(point)),
+      [3 /* socialDestroy */]: json.points[3 /* socialDestroy */].map((point) => new QuadrantPoint(point))
+    };
+    return new Space(endpoints3, points);
   }
   addRequests(requests) {
     for (const request of requests) {
@@ -184,6 +212,90 @@ var Space = class {
     result.temperature /= users;
     result.pressure /= users;
     return result;
+  }
+  toJson() {
+    return {
+      endpoints: {
+        social: this.endpoints.social.map((element) => element.method + " " + element.endpoint),
+        personal: this.endpoints.personal.map((element) => element.method + " " + element.endpoint),
+        create: this.endpoints.create.map((element) => element.method + " " + element.endpoint),
+        destroy: this.endpoints.destroy.map((element) => element.method + " " + element.endpoint)
+      },
+      points: this.points
+    };
+  }
+};
+
+// src/report.ts
+async function touch(filename) {
+  try {
+    const now = new Date();
+    await (0, import_promises.utimes)(filename, now, now);
+  } catch (e) {
+    const fd = (0, import_fs.openSync)(filename, "a");
+    await (0, import_fs.closeSync)(fd);
+  }
+}
+function getHttpRequest(line) {
+  const parts = line.split(" ");
+  return new HttpRequest(parts[0], parts[1]);
+}
+function parseLines(line, splitChar) {
+  const result = [];
+  line.toString().split(splitChar).forEach((line2) => {
+    const output = line2.trim();
+    if (output === "") {
+      return;
+    } else {
+      result.push(getHttpRequest(line2));
+    }
+  });
+  return result;
+}
+var Report = class {
+  constructor(name, endpoints3, source) {
+    this.name = name;
+    this.endpoints = endpoints3;
+    this.path = `${REPORT_DIR}/${this.name}.json`;
+    if (source === void 0) {
+      this._populate = async () => {
+        return new Promise((resolve2) => {
+          const result = [];
+          const stdin = process.openStdin();
+          stdin.on("data", (chunk) => {
+            const lines = parseLines(chunk, "\n");
+            lines.forEach((line) => result.push(line));
+          });
+          stdin.on("end", () => resolve2(result));
+        });
+      };
+    } else if (source.substring(0, 4) === "http") {
+      this._populate = async () => {
+        const result = [];
+        const response = await (0, import_node_fetch.default)(source);
+        try {
+          for await (const chunk of response.body) {
+            const lines = JSON.parse(chunk.toString());
+            lines.forEach((line) => result.push(parseLines(line, "")[0]));
+          }
+          return result;
+        } catch (err) {
+          console.error(err.stack);
+        }
+      };
+    } else {
+      this._populate = async () => {
+        return parseLines(source, ",");
+      };
+    }
+  }
+  async populate() {
+    await touch(this.path);
+    const data = (await (0, import_promises.readFile)(this.path)).toString();
+    const space = data === "" ? new Space(this.endpoints) : Space.fromJson(data);
+    space.addRequests(await this._populate());
+    await (0, import_promises.writeFile)(this.path, JSON.stringify(space));
+    return space;
   }
 };
 
@@ -607,6 +719,107 @@ var assert4 = __toESM(require("uvu/assert"));
   assert4.equal(socialDestroyVector.type, 3 /* socialDestroy */);
 });
 
+// tests/report.ts
+var import_promises2 = require("fs/promises");
+var import_uvu5 = require("uvu");
+var assert5 = __toESM(require("uvu/assert"));
+var endpoints2 = {
+  social: [
+    "POST /like/*",
+    "POST /favorite/*",
+    "POST /friendRequest/*",
+    "POST /post/*/comment",
+    "POST /search/*",
+    "POST /joinGroup/*",
+    "POST /report",
+    "POST /block/*",
+    "POST /unfriend/*"
+  ],
+  personal: [
+    "POST /video",
+    "POST /post",
+    "POST /settings",
+    "POST /changePassword"
+  ],
+  create: [
+    "POST /video",
+    "POST /post",
+    "POST /post/*/comment",
+    "POST /like/*",
+    "POST /favorite/*",
+    "POST /friendRequest/*",
+    "POST /post/*/comment",
+    "POST /search/*",
+    "POST /joinGroup/*"
+  ],
+  destroy: [
+    "DELETE /video/*",
+    "POST /changePassword",
+    "POST /settings",
+    "DELETE /post/*",
+    "DELETE /comment/*",
+    "PUT /video/*",
+    "PUT /post/*",
+    "PUT /comment/*",
+    "POST /report",
+    "POST /block/*",
+    "POST /unfriend/*"
+  ]
+};
+(0, import_uvu5.test)("Report: full", async () => {
+  const report = new Report("_test", endpoints2, "GET /like/4,PUT /post/2,POST /search/34");
+  const space1 = await report.populate();
+  assert5.equal(space1.toJson().endpoints, endpoints2);
+  assert5.equal(space1.points["0"].length, 1);
+  assert5.equal(space1.points["1"].length, 0);
+  assert5.equal(space1.points["2"].length, 1);
+  assert5.equal(space1.points["3"].length, 1);
+  assert5.equal(space1.points["0"][0].type, 0);
+  assert5.equal(space1.points["0"][0].content, 0);
+  assert5.equal(space1.points["0"][0].context, 1);
+  assert5.equal(space1.points["0"][0].time, 0);
+  assert5.equal(space1.points["2"][0].type, 2);
+  assert5.equal(space1.points["2"][0].content, 1);
+  assert5.equal(space1.points["2"][0].context, 0);
+  assert5.equal(space1.points["2"][0].time, 0);
+  assert5.equal(space1.points["3"][0].type, 3);
+  assert5.equal(space1.points["3"][0].content, -1);
+  assert5.equal(space1.points["3"][0].context, 0);
+  assert5.equal(space1.points["3"][0].time, 0);
+  const space2 = await report.populate();
+  assert5.equal(space2.points["0"].length, 2);
+  assert5.equal(space2.points["1"].length, 0);
+  assert5.equal(space2.points["2"].length, 2);
+  assert5.equal(space2.points["3"].length, 2);
+  assert5.equal(space2.points["0"][0].type, 0);
+  assert5.equal(space2.points["0"][0].content, 0);
+  assert5.equal(space2.points["0"][0].context, 1);
+  assert5.equal(space2.points["0"][0].time, 0);
+  assert5.equal(space2.points["0"][1].type, 0);
+  assert5.equal(space2.points["0"][1].content, 0);
+  assert5.equal(space2.points["0"][1].context, 1);
+  assert5.equal(space2.points["0"][1].time, 0);
+  assert5.equal(space2.points["2"][0].type, 2);
+  assert5.equal(space2.points["2"][0].content, 1);
+  assert5.equal(space2.points["2"][0].context, 0);
+  assert5.equal(space2.points["2"][0].time, 0);
+  assert5.equal(space2.points["2"][1].type, 2);
+  assert5.equal(space2.points["2"][1].content, 1);
+  assert5.equal(space2.points["2"][1].context, 0);
+  assert5.equal(space2.points["2"][1].time, 0);
+  assert5.equal(space2.points["3"][0].type, 3);
+  assert5.equal(space2.points["3"][0].content, -1);
+  assert5.equal(space2.points["3"][0].context, 0);
+  assert5.equal(space2.points["3"][0].time, 0);
+  assert5.equal(space2.points["3"][1].type, 3);
+  assert5.equal(space2.points["3"][1].content, -1);
+  assert5.equal(space2.points["3"][1].context, 0);
+  assert5.equal(space2.points["3"][1].time, 0);
+  assert5.equal(space1.toJson().endpoints, endpoints2);
+  console.log(report.path);
+  await (0, import_promises2.rm)(report.path);
+});
+
 // tests/index.ts
-import_uvu5.test.run();
+import_uvu6.test.run();
 //# sourceMappingURL=tests.js.map

@@ -1,8 +1,9 @@
 import { HttpRequest } from './httpRequest'
-import { getPipeAsArray } from './pipe'
+import { Report } from './report'
 import { Space } from './space'
 
 export {
   HttpRequest,
-  Space
+  Space,
+  Report  
 }

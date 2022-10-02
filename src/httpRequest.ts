@@ -1,6 +1,6 @@
 import EasyMatch from 'easy-match'
 
-type HttpRequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export type HttpRequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 interface HttpRequestJson {
   method: HttpRequestMethod
