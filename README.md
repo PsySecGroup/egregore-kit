@@ -26,10 +26,6 @@ The Egregore Kit operates from the assumption that egregores are [state of matte
 * The REST endpoints should follow as many of the [HTTP 1.1 Request Method Standards](https://datatracker.ietf.org/doc/html/rfc7231#section-4) as possible, especially:
   * [Idempotency](https://datatracker.ietf.org/doc/html/rfc7231#section-4.2.2)
   * [Method Definitions](https://datatracker.ietf.org/doc/html/rfc7231#section-4.3)
-    * Each **GET** methods is a positive number for either the content or the context axis.
-    * Each **POST** methods is a positive number for either the content or the context axis.
-    * Each **PUT** methods is a negative number for either the content or the context axis.
-    * Each **DELETE** methods is a negative number for either the content or the context axis.
 * Four vectors can be created from each point with the following properties:
   * _Context magnitude_, which is the position of the point on the context axis.
   * _Content magnitude_, which is the position of the point on the content axis.
@@ -39,6 +35,8 @@ The Egregore Kit operates from the assumption that egregores are [state of matte
 ![Context-Context Space](docs/Content-Context-Space-Example.png "Content-Context Space")
 
 ### Usage
+
+```yarn cli``` to run CLI
 
 ```ts
 import { HttpRequest, Space } from 'egregore-kit'

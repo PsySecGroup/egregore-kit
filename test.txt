@@ -1,0 +1,3 @@
+POST /like/6
+POST /like/61
+POST /posts

@@ -1,6 +1,6 @@
-import { Command } from 'commander';
-import { HttpRequest } from './httpRequest';
-import { Space } from './space';
+import { HttpRequest } from './httpRequest'
+import { getPipeAsArray } from './pipe'
+import { Space } from './space'
 
 export {
   HttpRequest,

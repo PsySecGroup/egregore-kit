@@ -1,6 +1,6 @@
 {
   "name": "egregore-kit",
-  "description": "Easily sets up TypeScript server-side projects that are StackBlitz compliant.",
+  "description": "Tools to detect egregore activity.",
   "version": "1.0.1",
   "author": "The PsySec Group",
   "license": "MIT",
@@ -14,6 +14,7 @@
   },
   "scripts": {
     "start": "node -r source-map-support/register dist/index.js",
+    "cli": "node -r source-map-support/register dist/cli.js",
     "dev": "echo 'Type \"npm run sb-watch\" to get started'",
     "build": "tsup-node --legacy-output --dts --minify --format esm,cjs,iife",
     "sb-watch": "nodemon --watch src/ -e ts,tsx,js --exec \"tsup-node --dts --onSuccess 'node -r source-map-support/register dist/index.js'\"",
@@ -22,7 +23,8 @@
   },
   "tsup": {
     "entry": [
-      "src/index.ts"
+      "src/index.ts",
+      "src/cli.ts"
     ],
     "splitting": false,
     "sourcemap": true,
@@ -45,7 +47,9 @@
   },
   "dependencies": {
     "commander": "^9.3.0",
+    "dotenv": "^16.0.3",
     "easy-match": "^1.1.5",
+    "fastify": "^4.7.0",
     "is-negative-zero": "^2.0.2",
     "ts-node": "^10.8.1"
   }
