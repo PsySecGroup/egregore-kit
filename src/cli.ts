@@ -14,12 +14,13 @@ program
 program.command('update')
   .description('Updates a report')
   .argument('<name>', 'Identifier of the report to update')
-  .argument('<endpoints>', 'Endpoint schema path to use')
-  .argument('[source]', 'CSV string of "METHOD ENDPOINT" strings, a URL.  This argument can be ignored when using Linux piping.')
+  .argument('<endpoints>', 'Path or URL of endpoint schema JSON')
+  .argument('[source]', 'Path or URL of HTTP endpoint data.  If empty, data via Linux piping will be expected.')
   .action(async (name: string, endpoints: string, source: string) => {
     // @TODO
     console.log(name, source)   
   })
+
 /*
 program.command('split')
   .description('')
@@ -31,6 +32,7 @@ program.command('split')
     console.log(arg.split(separator, limit));
   })
 */
+
 async function main () {
   program.parse()
 }

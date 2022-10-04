@@ -15,7 +15,7 @@ var __copyProps = (to, from, except, desc) => {
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
 
 // tests/index.ts
-var import_uvu6 = require("uvu");
+var import_uvu7 = require("uvu");
 
 // tests/httpRequest.ts
 var import_uvu = require("uvu");
@@ -259,14 +259,14 @@ var Report = class {
     this.path = `${REPORT_DIR}/${this.name}.json`;
     if (source === void 0) {
       this._populate = async () => {
-        return new Promise((resolve2) => {
+        return new Promise((resolve3) => {
           const result = [];
           const stdin = process.openStdin();
           stdin.on("data", (chunk) => {
             const lines = parseLines(chunk, "\n");
             lines.forEach((line) => result.push(line));
           });
-          stdin.on("end", () => resolve2(result));
+          stdin.on("end", () => resolve3(result));
         });
       };
     } else if (source.substring(0, 4) === "http") {
@@ -820,6 +820,90 @@ var endpoints2 = {
   await (0, import_promises2.rm)(report.path);
 });
 
+// tests/source.ts
+var import_uvu6 = require("uvu");
+
+// src/http.ts
+var import_fastify = __toESM(require("fastify"));
+var server = (0, import_fastify.default)();
+function prepareHttp(port2 = PORT, host2 = HOSTNAME, silent = false) {
+  const startServer = async () => {
+    try {
+      await server.listen({
+        port: port2,
+        host: host2
+      });
+    } catch (err) {
+      server.log.error(err);
+      process.exit(1);
+    }
+  };
+  if (silent === false) {
+    console.info(`HTTP listening on port http://${host2}:${port2}...`);
+  }
+  return { server, startServer };
+}
+
+// src/source.ts
+var import_node_fetch2 = __toESM(require("node-fetch"));
+var import_promises3 = require("fs/promises");
+var import_path2 = require("path");
+var Source = class {
+  constructor(source, parseLine) {
+    this.source = source;
+    this.parseLine = parseLine;
+  }
+  async get() {
+    if (this.source.substring(0, 4) === "http") {
+      const result = [];
+      const response = await (0, import_node_fetch2.default)(this.source, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      try {
+        for await (const chunk of response.body) {
+          const lines = JSON.parse(chunk.toString());
+          lines.forEach((line) => result.push(this.parseLine(line.split(" "))[0]));
+        }
+        return result;
+      } catch (err) {
+        console.error(err.stack);
+      }
+    } else {
+      const path = (0, import_path2.resolve)(process.cwd(), `${this.source}.json`);
+      const data = (await (0, import_promises3.readFile)(path)).toString();
+      const lines = data.split("\n");
+      const result = [];
+      for (const line of lines) {
+        result.push(this.parseLine(line.split(" "))[0]);
+      }
+      return result;
+    }
+  }
+};
+
+// tests/source.ts
+var port = 30001;
+var host = "localhost";
+(0, import_uvu6.test)("Source: full", async () => {
+  const { server: server2, startServer } = await prepareHttp(port, host, true);
+  server2.get("/test.json", (request, reply) => {
+    reply.send(JSON.stringify([
+      "POST /like/13",
+      "POST /video",
+      "POST /search/bob",
+      "DELETE /post/2",
+      "POST /report"
+    ]));
+  });
+  await startServer();
+  const source = new Source(`http://${host}:${port}/test.json`, (data) => new HttpRequest(data[0], data[1]));
+  const requests = await source.get();
+  console.log(requests);
+  server2.close();
+});
+
 // tests/index.ts
-import_uvu6.test.run();
+import_uvu7.test.run();
 //# sourceMappingURL=tests.js.map
