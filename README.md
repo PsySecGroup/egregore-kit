@@ -5,7 +5,7 @@ The Egregore Kit is a collection of mathematical tools and algorithms to help de
 
 ## Install
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/hypercrowd/typescript-server-template)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/PsySecGroup/egregore-kit)
 
 * `npm i -S https://github.com/PsySecGroup/egregore-kit.git`
 * `yarn add https://github.com/PsySecGroup/egregore-kit.git`
