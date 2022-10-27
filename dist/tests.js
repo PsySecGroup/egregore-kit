@@ -886,19 +886,21 @@ var Source = class {
 // tests/source.ts
 var port = 30001;
 var host = "localhost";
+var makeHttpRequest = (data) => new HttpRequest(data[0], data[1]);
+var jsonResponse = JSON.stringify([
+  "POST /like/13",
+  "POST /video",
+  "POST /search/bob",
+  "DELETE /post/2",
+  "POST /report"
+]);
 (0, import_uvu6.test)("Source: full", async () => {
   const { server: server2, startServer } = await prepareHttp(port, host, true);
   server2.get("/test.json", (request, reply) => {
-    reply.send(JSON.stringify([
-      "POST /like/13",
-      "POST /video",
-      "POST /search/bob",
-      "DELETE /post/2",
-      "POST /report"
-    ]));
+    reply.send(jsonResponse);
   });
   await startServer();
-  const source = new Source(`http://${host}:${port}/test.json`, (data) => new HttpRequest(data[0], data[1]));
+  const source = new Source(`http://${host}:${port}/test.json`, makeHttpRequest);
   const requests = await source.get();
   console.log(requests);
   server2.close();
